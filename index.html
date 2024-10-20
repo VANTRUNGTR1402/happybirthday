@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Happy Birthday with Fireworks</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: #000;
+            font-family: Arial, sans-serif;
+        }
+
+        .container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+        }
+
+        .text {
+            position: absolute;
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #FF6347;
+            animation: moveUp 8s linear infinite;
+        }
+
+        @keyframes moveUp {
+            0% {
+                transform: translateY(100vh);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-100vh);
+                opacity: 0;
+            }
+        }
+
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: -1; /* Đặt canvas ở dưới các chữ */
+        }
+    </style>
+</head>
+<body>
+    <div class="container" id="birthday-container">
+    </div>
+
+    <canvas id="fireworksCanvas"></canvas>
+
+    <script>
+        const texts = ['happy birthday Thanh Hay', 'happy women`s day', '🍕', '🍔', '🎂'];
+
+        function createText() {
+            const container = document.getElementById('birthday-container');
+            const textDiv = document.createElement('div');
+            textDiv.classList.add('text');
+            
+            // Tạo vị trí ngang ngẫu nhiên
+            textDiv.style.left = `${Math.random() * 100}vw`;
+            textDiv.style.animationDuration = `${Math.random() * 4 + 6}s`;
+
+            textDiv.innerHTML = texts[Math.floor(Math.random() * texts.length)];
+
+            container.appendChild(textDiv);
+
+            // Xóa phần tử sau khi hoàn thành animation
+            textDiv.addEventListener('animationend', () => {
+                container.removeChild(textDiv);
+            });
+        }
+
+        // Tạo dòng chữ mới mỗi 700ms
+        setInterval(createText, 550);
+
+        // --- Pháo hoa với Canvas ---
+        const canvas = document.getElementById('fireworksCanvas');
+        const ctx = canvas.getContext('2d');
+        let fireworks = [];
+
+        // Kích thước canvas theo kích thước màn hình
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        // Cấu trúc một pháo hoa
+        class Firework {
+            constructor(x, y) {
+                this.x = x;
+                this.y = y;
+                this.particles = [];
+                for (let i = 0; i < 100; i++) {
+                    this.particles.push(new Particle(this.x, this.y));
+                }
+            }
+
+            update() {
+                this.particles.forEach((particle, index) => {
+                    particle.update();
+                    if (particle.alpha <= 0) {
+                        this.particles.splice(index, 1);
+                    }
+                });
+            }
+
+            draw() {
+                this.particles.forEach(particle => {
+                    particle.draw();
+                });
+            }
+        }
+
+        // Cấu trúc từng hạt pháo hoa
+        class Particle {
+            constructor(x, y) {
+                this.x = x;
+                this.y = y;
+                this.speed = Math.random() * 5 + 2;
+                this.angle = Math.random() * 2 * Math.PI;
+                this.radius = Math.random() * 3 + 2;
+                this.alpha = 1;
+                this.color = `hsl(${Math.random() * 360}, 100%, 50%)`;
+            }
+
+            update() {
+                this.x += Math.cos(this.angle) * this.speed;
+                this.y += Math.sin(this.angle) * this.speed;
+                this.alpha -= 0.02;
+            }
+
+            draw() {
+                ctx.save();
+                ctx.globalAlpha = this.alpha;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fillStyle = this.color;
+                ctx.fill();
+                ctx.restore();
+            }
+        }
+
+        // Tạo pháo hoa mới tại một vị trí ngẫu nhiên
+        function createFirework() {
+            const x = Math.random() * canvas.width;
+            const y = Math.random() * canvas.height / 2;  // Pháo hoa bắn ở nửa trên màn hình
+            fireworks.push(new Firework(x, y));
+        }
+
+        // Cập nhật và vẽ pháo hoa
+        function updateFireworks() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            fireworks.forEach((firework, index) => {
+                firework.update();
+                firework.draw();
+                if (firework.particles.length === 0) {
+                    fireworks.splice(index, 1);
+                }
+            });
+            requestAnimationFrame(updateFireworks);
+        }
+
+        // Cứ mỗi 1 giây lại bắn pháo hoa một lần
+        setInterval(createFirework, 1000);
+
+        // Bắt đầu vòng lặp animation pháo hoa
+        updateFireworks();
+    </script>
+</body>
+</html>
